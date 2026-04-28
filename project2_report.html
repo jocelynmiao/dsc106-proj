@@ -166,9 +166,30 @@
             <p>Design Decisions and Rationale:</p>
 
             <ul>
-                <li>RATIONALE_1</li>
-                <li>RATIONALE_2</li>
-                <li>RATIONALE_3</li>
+                <li>
+                    Transformation: We converted raw average emission values into percentage change relative to 2010, using 0 as 
+                    the baseline. Setting the baseline to 0 makes it easier for readers to seperate increases and decreases by 
+                    using positive and negative numbers. This transformation can be misleading, however, as readers may assume that 
+                    carbon emissions have strictly increased each year for developing economies and strictly decreased each year for 
+                    advanced economies, despite potential fluctuations between each year.
+                </li>
+                <li>
+                    Color Choice: We decided to use red for developing and emerging economies and green for advanced economies.
+                    Originally, we used green for the emerging/developing economies and gray for the other because we wanted to 
+                    draw more attention to the group with larger emissions. However, we realized that green, along with a trend
+                    of increased values, could contribute to a positive perception, despite greater CO2 emissions being more harmful.
+                    We wanted to create a stricter divide between "good" and "bad" between the emissions of the two groups, which is why
+                    emerging/developing economies are red and advanced economies are green. For similar reasons, we highlighted the baseline
+                    to green, creating positive associations for values below the line. 
+                    
+                </li>
+                <li>
+                    Type of plot: We went with a box plot. Partially to differentiate from the negative propostion, but mostly 
+                    to highlight general trend rather than year-by-year breakdowns. By reducing overall noise we are able to 
+                    showcase overall behavior of each group. Additionally, this sends a very clear message to the reader: that
+                    developing and emerging markets have strictly positive distributions and advanced markets have strictly 
+                    negative distributions in percentage change relative to 2010.
+                </li>
             </ul>
         </section>
 
