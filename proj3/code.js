@@ -30,6 +30,7 @@ async function loadData() {
         region: row.region,
         experiment: row.experiment,
         year: Number(row.year),
+        mean_temp: Number(row.mean_temp),
         anomaly: Number(row.anomaly),
     }));
 
@@ -56,14 +57,15 @@ function renderScatterPlot(data) {
         .style('overflow', 'visible');
 
     xScale = d3
-        .scaleTime()
-        .domain(d3.extent(data, (d) => d.datetime))
+        .scaleLinear()
+        .domain([1850, 2020])
         .range([0, width])
-        .nice()
+        
+        // .nice()
 
     yScale = d3
         .scaleLinear()
-        .domain(d3.extent(data, (d) => d.datetime))
+        .domain(d3.extent(data, (d) => d.anomaly))
         .range([height, 0])
 
     const dots = svg.append('g').attr('class', 'dots');
@@ -81,10 +83,11 @@ function renderScatterPlot(data) {
     xScale.range([usableArea.left, usableArea.right]);
     yScale.range([usableArea.bottom, usableArea.top]);
 
-    const xAxis = d3.axisBottom(xScale);
+    const xAxis = d3
+        .axisBottom(xScale)
+        .tickFormat(d3.format("d"));;
     const yAxis = d3
         .axisLeft(yScale)
-        .tickFormat((d) => String(d % 24).padStart(2, '0') + ':00');
 
     // Add X axis
     svg
@@ -97,6 +100,28 @@ function renderScatterPlot(data) {
         .append('g')
         .attr('transform', `translate(${usableArea.left}, 0)`)
         .call(yAxis);
+
+    const gridlines = svg
+        .append('g')
+        .attr('class', 'gridlines')
+        .attr('transform', `translate(${usableArea.left}, 0)`);
+
+    const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+
+    dots
+        .selectAll('circle')
+        .data(data.filter(d => d.experiment === 'historical'))
+        .join('circle')
+        .attr('cx', (d) => xScale(d.year))
+        .attr('cy', (d) => yScale(d.anomaly))
+        .attr('r', 5)
+        .attr("fill", d => colorScale(d.region))
+        .style('fill-opacity', 0.7) // Add transparency for overlapping dots
+
+    // Create gridlines as an axis with no labels and full-width ticks
+    gridlines.call(d3.axisLeft(yScale).tickFormat('').tickSize(-usableArea.width));
+
+
 };
 
 renderScatterPlot(data);
