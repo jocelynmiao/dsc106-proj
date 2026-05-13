@@ -231,7 +231,7 @@
     ssp585: { label: 'SSP5-8.5', desc: 'Fossil-fueled · extreme', color: '#ef4444' },
   };
 
-  // ═══ Load data ═══════════════════════════════════════════
+  //Data loading
   let rawData;
   let dataSource = '';
   try {
@@ -309,11 +309,11 @@
     scenarioByRegion[scen] = d3.group(data.filter(d => d.scenario === scen), d => d.region);
   });
 
-  // ═══ State ═══════════════════════════════════════════════
+  
   let currentScenario = availableScenarios.includes('ssp245') ? 'ssp245' : availableScenarios[0];
   let selectedRegion = null;
 
-  // ═══ Scenario slider ═════════════════════════════════════
+  //EXP slider
   const stopsDiv = document.getElementById('scenario-stops');
   const labelsDiv = document.getElementById('scenario-labels');
   availableScenarios.forEach(scen => {
@@ -341,7 +341,7 @@
     if (selectedRegion) renderDetail();
   }
 
-  // ═══ Main chart setup ════════════════════════════════════
+  //Main graph setup
   const MC = { w: 1100, h: 460, m: { t: 20, r: 30, b: 50, l: 60 } };
   const mainSvg = d3.select('#main-chart');
 
@@ -355,10 +355,7 @@
     .range([MC.h - MC.m.b, MC.m.t])
     .nice();
 
-  // mcXView is what everything renders against — starts as full scale, updated on zoom
   let mcXView = mcX;
-
-  // Clip path — keeps lines inside the plot area at all zoom levels
   mainSvg.append('defs')
     .append('clipPath').attr('id', 'mc-clip')
     .append('rect')
@@ -366,7 +363,7 @@
       .attr('width', MC.w - MC.m.l - MC.m.r)
       .attr('height', MC.h - MC.m.t - MC.m.b);
 
-  // Axes (kept as selections so we can re-call on zoom)
+  //Axes Setup
   const xAxisG = mainSvg.append('g').attr('class', 'axis')
     .attr('transform', `translate(0,${MC.h - MC.m.b})`);
   const yAxisG = mainSvg.append('g').attr('class', 'axis')
@@ -394,7 +391,7 @@
     .attr('y1', mcY(0)).attr('y2', mcY(0))
     .attr('stroke', 'var(--ink-faint)').attr('stroke-width', 0.8);
 
-  // Baseline shading + label
+  //Baseline setup
   const baselineRect = mainSvg.append('rect')
     .attr('id', 'baseline-rect')
     .attr('x', mcX(1951)).attr('y', MC.m.t)
@@ -411,7 +408,6 @@
     .attr('fill', 'rgba(245, 222, 179, 0.6)')
     .text('BASELINE');
 
-  // 2015 transition line + label
   const transitionLine = mainSvg.append('line')
     .attr('x1', mcX(2015)).attr('x2', mcX(2015))
     .attr('y1', MC.m.t).attr('y2', MC.h - MC.m.b)
@@ -426,7 +422,6 @@
     .attr('fill', 'var(--ink-faint)')
     .text('SCENARIO →');
 
-  // Clipped groups for data lines
   const linesG = mainSvg.append('g')
     .attr('class', 'region-lines')
     .attr('clip-path', 'url(#mc-clip)');
@@ -447,11 +442,7 @@
   // Brush group — sits on top, torn down and rebuilt after every zoom/reset
   const brushG = mainSvg.append('g').attr('class', 'zoom-brush');
 
-  // ═══ initBrush ═══════════════════════════════════════════
-  // Key insight: brush and hover both invert through mcXView.
-  // After each zoom mcXView is updated, then initBrush() is called so the
-  // new brush closure captures the updated mcXView. This keeps them in sync
-  // at every zoom level — no stale scale references.
+  // Brush re-initializer
   function initBrush() {
     brushG.selectAll('*').remove();
 
@@ -460,7 +451,6 @@
       .on('end', function(event) {
         if (!event.selection) return;
         const [px0, px1] = event.selection;
-        // invert through the CURRENT view scale so sub-zooms work correctly
         const year0 = Math.round(mcXView.invert(px0));
         const year1 = Math.round(mcXView.invert(px1));
         if (year1 - year0 < 2) { brushG.call(brush.move, null); return; }
@@ -482,7 +472,7 @@
       .on('mouseleave.hover', handleHoverEnd);
   }
 
-  // ═══ Zoom helpers ════════════════════════════════════════
+  //Zoom setup
   function applyZoom(year0, year1) {
     xAxisG.transition().duration(350)
       .call(d3.axisBottom(mcXView).tickFormat(d3.format('d')).ticks(8));
@@ -496,8 +486,6 @@
       .attr('x', mcXView(1951))
       .attr('width', Math.max(0, mcXView(1980) - mcXView(1951)));
 
-    // Hide baseline label when the baseline period is scrolled out of view
-    // or the shaded region is too narrow to be legible
     const labelVisible = year0 < 1980 && year1 > 1951 &&
       (mcXView(1980) - mcXView(1951)) > 30;
     baselineLabel.attr('visibility', labelVisible ? 'visible' : 'hidden');
@@ -507,7 +495,6 @@
     document.getElementById('zoom-bar').style.display = 'flex';
     document.getElementById('zoom-range-label').textContent = `${year0} – ${year1}`;
 
-    // Rebuild brush so its closure captures the new mcXView
     initBrush();
   }
 
@@ -532,13 +519,11 @@
     document.getElementById('zoom-bar').style.display = 'none';
     document.getElementById('zoom-range-label').textContent = '';
 
-    // Rebuild brush so its closure captures the restored mcXView
     initBrush();
   }
 
   document.getElementById('zoom-reset').addEventListener('click', resetZoom);
 
-  // ═══ Render main chart ═══════════════════════════════════
   function renderMainChart() {
     const lg = d3.line()
       .x(d => mcXView(d.year))
@@ -605,10 +590,7 @@
     legend.appendChild(g);
   }
 
-  // ═══ Hover ═══════════════════════════════════════════════
-  // Uses mcXView for both invert (pixel→year) and forward (year→pixel).
-  // Since initBrush() is always called after mcXView changes, the closure
-  // here always sees the current scale — hover and brush stay in sync.
+  //Tooltip setup
   function handleHover(event) {
     const [mx] = d3.pointer(event, mainSvg.node());
     const year = Math.round(mcXView.invert(mx));
@@ -686,11 +668,11 @@
     document.getElementById('main-tooltip').style.opacity = 0;
   }
 
-  // Initial render + brush
+
   renderMainChart();
   initBrush();
 
-  // ═══ Small multiples ═════════════════════════════════════
+  //Mini graph
   function buildSmallMultiples() {
     const container = document.getElementById('small-multiples');
     container.innerHTML = '';
@@ -773,7 +755,6 @@
 
   buildSmallMultiples();
 
-  // ═══ Detail panel ════════════════════════════════════════
   function renderDetail() {
     if (!selectedRegion) return;
     document.getElementById('detail-section').classList.add('active');
