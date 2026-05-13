@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Uneven Heat — Regional Warming Explorer</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="code.js" type="module"></script>
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">DSC 106 · Project 3 · Interactive Visualization</div>
+  <h1>The Uneven Heat: <em>where</em> the planet warms fastest under each emissions future.</h1>
+  <p class="deck">
+    Climate change is usually reported as a single global temperature, but that
+    number masks profoundly uneven regional warming. This explorer lets you
+    compare how four climate zones — tropical, subtropical, temperate, and polar —
+    respond under three emissions pathways, from aggressive policy action
+    (SSP1-2.6) to fossil-fueled growth (SSP5-8.5).
+  </p>
+
+  <div id="banner" class="banner" style="display:none;"></div>
+
+  <!-- ═══ Section 1: All-regions view with scenario slider ═══ -->
+  <div class="section">
+    <div class="section-eyebrow">View 1 · All regions, one scenario</div>
+    <h2>How regions diverge under each emissions pathway.</h2>
+    <p class="section-deck">
+      Each line tracks one climate zone's annual mean temperature anomaly
+      relative to the 1951–1980 baseline. The dashed gray line is the global
+      mean — the standard "climate change" headline number. Watch how regional
+      lines spread apart from it as you scrub through scenarios.
+    </p>
+
+    <div class="scenario-control">
+      <div class="scenario-control-label">Scenario · emissions pathway</div>
+      <div class="scenario-slider-track" id="scenario-track">
+        <div class="scenario-slider-stops" id="scenario-stops"></div>
+      </div>
+      <div class="scenario-slider-labels" id="scenario-labels"></div>
+    </div>
+
+    <div class="chart-wrap">
+      <svg id="main-chart" class="main-chart-svg" viewBox="0 0 1100 460" preserveAspectRatio="xMidYMid meet"></svg>
+      <div id="main-tooltip" class="chart-tooltip"></div>
+    </div>
+
+    <!-- Zoom controls bar — hidden until a zoom is active -->
+    <div id="zoom-bar" style="display:none; align-items:center; gap:8px; margin-top:6px;">
+      <span style="font-size:11px; font-family:'JetBrains Mono',monospace; color:#9aa6b2; letter-spacing:0.05em;">ZOOMED VIEW</span>
+      <button id="zoom-reset" style="font-size:11px; padding:2px 10px;
+        border:0.5px solid rgba(154,166,178,0.4); border-radius:4px;
+        background:transparent; color:#9aa6b2; cursor:pointer; font-family:'JetBrains Mono',monospace;">
+        ↩ Reset zoom
+      </button>
+      <span id="zoom-range-label" style="font-size:11px; font-family:'JetBrains Mono',monospace; color:#9aa6b2;"></span>
+    </div>
+    <div style="margin-top:4px; font-size:11px; font-family:'JetBrains Mono',monospace; color:rgba(154,166,178,0.55); letter-spacing:0.04em;">
+      DRAG ON CHART TO ZOOM INTO A TIME WINDOW
+    </div>
+
+    <div class="chart-legend" id="main-legend"></div>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-eyebrow">View 2 · Per region, all scenarios</div>
+    <h2>Click any region to drill in.</h2>
+    <p class="section-deck">
+      Each panel shows one climate zone's <em>amplification</em> — how much
+      faster (above zero) or slower (below zero) that region warms compared
+      to the global mean. Lines are colored by scenario.
+    </p>
+
+    <div class="small-multiples" id="small-multiples"></div>
+  </div>
+
+  <!-- ═══ Detail panel (appears on click) ═══ -->
+  <div class="detail-section" id="detail-section">
+    <div class="detail-header">
+      <div class="detail-title" id="detail-title">Region</div>
+      <button class="detail-close" id="detail-close">✕ Close</button>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-chart-wrap">
+        <svg id="detail-chart" class="detail-svg" viewBox="0 0 760 360" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <div class="detail-info">
+        <div class="detail-card">
+          <h4>Peak amplification</h4>
+          <div class="stat" id="peak-stat">—<span class="unit">°C</span></div>
+          <div class="stat-sub" id="peak-sub">—</div>
+        </div>
+        <div class="detail-card">
+          <h4>Anomaly at 2100</h4>
+          <div class="stat" id="anom-stat">—<span class="unit">°C</span></div>
+          <div class="stat-sub" id="anom-sub">vs. 1951–1980 baseline</div>
+        </div>
+        <div class="milestone" id="detail-milestone">
+          <div class="milestone-eyebrow">Key insight</div>
+          <div class="milestone-text" id="detail-milestone-text">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="footer-meta">
+    Data: NOAA / Pangeo CMIP6 archive · CESM2-WACCM r1i1p1f1 · Baseline 1951–1980<br>
+    Built with D3.js · No external plotting libraries · DSC 106 Spring 2026
+  </div>
+</div>
+
+</body>
+</html>
