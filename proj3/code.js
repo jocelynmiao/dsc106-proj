@@ -3,10 +3,10 @@
   // ═══ Configuration ═══════════════════════════════════════
   const REGIONS = ['tropical', 'subtropical', 'temperate', 'polar'];
   const REGION_COLORS_RAW = {
-    tropical:    '#3b82f6',
+    tropical: '#3b82f6',
     subtropical: '#10b981',
-    temperate:   '#f59e0b',
-    polar:       '#ef4444',
+    temperate: '#f59e0b',
+    polar: '#ef4444',
   };
 
   const SCENARIOS_META = {
@@ -44,10 +44,10 @@
   rawData = rawData.filter(d => d.year <= 2100);
 
   const REGION_AREA_WEIGHTS = {
-    tropical:    Math.sin(23.5 * Math.PI / 180),
-    subtropical: Math.sin(40   * Math.PI / 180) - Math.sin(23.5 * Math.PI / 180),
-    temperate:   Math.sin(60   * Math.PI / 180) - Math.sin(40   * Math.PI / 180),
-    polar:       1 - Math.sin(60 * Math.PI / 180),
+    tropical: Math.sin(23.5 * Math.PI / 180),
+    subtropical: Math.sin(40 * Math.PI / 180) - Math.sin(23.5 * Math.PI / 180),
+    temperate: Math.sin(60 * Math.PI / 180) - Math.sin(40 * Math.PI / 180),
+    polar: 1 - Math.sin(60 * Math.PI / 180),
   };
 
   const hasGmean = rawData[0].gmean !== undefined && rawData[0].gmean !== null;
@@ -94,7 +94,7 @@
     scenarioByRegion[scen] = d3.group(data.filter(d => d.scenario === scen), d => d.region);
   });
 
-  
+
   let currentScenario = availableScenarios.includes('ssp245') ? 'ssp245' : availableScenarios[0];
   let selectedRegion = null;
 
@@ -144,9 +144,9 @@
   mainSvg.append('defs')
     .append('clipPath').attr('id', 'mc-clip')
     .append('rect')
-      .attr('x', MC.m.l).attr('y', MC.m.t)
-      .attr('width', MC.w - MC.m.l - MC.m.r)
-      .attr('height', MC.h - MC.m.t - MC.m.b);
+    .attr('x', MC.m.l).attr('y', MC.m.t)
+    .attr('width', MC.w - MC.m.l - MC.m.r)
+    .attr('height', MC.h - MC.m.t - MC.m.b);
 
   //Axes Setup
   const xAxisG = mainSvg.append('g').attr('class', 'axis')
@@ -167,9 +167,9 @@
 
   mainSvg.append('g').selectAll('line')
     .data(mcY.ticks(8)).join('line')
-      .attr('class', 'grid-line')
-      .attr('x1', MC.m.l).attr('x2', MC.w - MC.m.r)
-      .attr('y1', d => mcY(d)).attr('y2', d => mcY(d));
+    .attr('class', 'grid-line')
+    .attr('x1', MC.m.l).attr('x2', MC.w - MC.m.r)
+    .attr('y1', d => mcY(d)).attr('y2', d => mcY(d));
 
   mainSvg.append('line')
     .attr('x1', MC.m.l).attr('x2', MC.w - MC.m.r)
@@ -177,16 +177,22 @@
     .attr('stroke', 'var(--ink-faint)').attr('stroke-width', 0.8);
 
   //Baseline setup
-  const baselineRect = mainSvg.append('rect')
+  const baselineG = mainSvg.append('g')
+    .attr('clip-path', 'url(#mc-clip)');
+
+  const baselineRect = baselineG.append('rect')
     .attr('id', 'baseline-rect')
-    .attr('x', mcX(1951)).attr('y', MC.m.t)
+    .attr('x', mcX(1951))
+    .attr('y', MC.m.t)
     .attr('width', mcX(1980) - mcX(1951))
     .attr('height', MC.h - MC.m.t - MC.m.b)
-    .attr('fill', 'wheat').attr('opacity', 0.05);
+    .attr('fill', 'wheat')
+    .attr('opacity', 0.05);
 
-  const baselineLabel = mainSvg.append('text')
+  const baselineLabel = baselineG.append('text')
     .attr('id', 'baseline-label')
-    .attr('x', (mcX(1951) + mcX(1980)) / 2).attr('y', MC.m.t + 12)
+    .attr('x', (mcX(1951) + mcX(1980)) / 2)
+    .attr('y', MC.m.t + 12)
     .attr('text-anchor', 'middle')
     .style('font-family', "'JetBrains Mono', monospace")
     .style('font-size', '9px')
@@ -233,7 +239,7 @@
 
     const brush = d3.brushX()
       .extent([[MC.m.l, MC.m.t], [MC.w - MC.m.r, MC.h - MC.m.b]])
-      .on('end', function(event) {
+      .on('end', function (event) {
         if (!event.selection) return;
         const [px0, px1] = event.selection;
         const year0 = Math.round(mcXView.invert(px0));
@@ -267,13 +273,24 @@
     transitionLabel.transition().duration(350)
       .attr('x', mcXView(2015) + 6);
 
-    baselineRect.transition().duration(350)
-      .attr('x', mcXView(1951))
-      .attr('width', Math.max(0, mcXView(1980) - mcXView(1951)));
+    const baselineX = mcXView(1951);
+    const baselineWidth = Math.max(0, mcXView(1980) - mcXView(1951));
+    const baselineCenter = baselineX + baselineWidth / 2;
 
-    const labelVisible = year0 < 1980 && year1 > 1951 &&
-      (mcXView(1980) - mcXView(1951)) > 30;
-    baselineLabel.attr('visibility', labelVisible ? 'visible' : 'hidden');
+    baselineRect.transition().duration(350)
+      .attr('x', baselineX)
+      .attr('width', baselineWidth);
+
+    const labelVisible =
+      year0 < 1980 &&
+      year1 > 1951 &&
+      baselineWidth > 30;
+
+    baselineLabel
+      .transition()
+      .duration(350)
+      .attr('x', baselineCenter)
+      .attr('visibility', labelVisible ? 'visible' : 'hidden');
 
     renderMainChart();
 
